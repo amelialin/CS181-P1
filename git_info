@@ -1,0 +1,30 @@
+First intall git if you don't have it.  If you have windows you'll also need a terminal program.  I use cmder
+https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+Using the terminal navigate to where you want to keep your project folder.  Then run this command to get the files on your computer.
+git clone https://github.com/SRutherf/CS181-P1.git
+
+Git works by having a default branch called master and branches off of it.  The master branch acts as a final location for code changes
+whereas the branches act as a testing ground before they are submitted to master.
+
+I created 3 branches with our names.  To access yours run the command
+git checkout yourfirstname
+
+From there you can make any changes to your files.
+
+To check the files you've changed use the following command.  It shows you what branch you're in and other useful info.
+git status
+
+Once you've made changes run the following commands to put it on github.  In order they add files you wish to upload, add a helpful message that explains the change, and then pushes it to github
+git add filename (or run "git add ." to add all)
+git commit -m "Sample summary text"
+git push origin yourfirstname
+
+Note that git push origin alone pushes the files to master.
+
+Once the files are pushed to your branch go to the repo page on github.com.  You'll see a 'compare and pull request' button.
+Press this and make sure that the base field is master and the compare field is your branch.  
+This window let's you add comments, tag people, and make sure that you're submitting the correct changes.
+
+Once you're satisfied click on create pull request.  This creates a submission that other teammates can review.  If we agree the changes are good then anyone can merge the request and the code will be on master.
+In big projects it's considered bad for people who create the pull request to merge it, but since this is a small team and changes might be minor don't worry about that.
