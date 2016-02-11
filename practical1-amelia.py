@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import math
+import datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
@@ -15,7 +16,7 @@ def write_to_file(filename, predictions):
         for i,p in enumerate(predictions):
             f.write(str(i+1) + "," + str(p) + "\n")
 
-use_full_train_set = 0
+use_full_train_set = 1
 
 # Turns off scientific notation when printing matrices in numpy
 np.set_printoptions(suppress=True)
@@ -23,10 +24,10 @@ np.set_printoptions(suppress=True)
 # use pandas built-in functions to read in train and test
 print "Loading data"
 start = time.time()
-df_train_all = pd.read_csv("train_1000.csv")
+df_train_all = pd.read_csv("train.csv")
 print "Done reading in train", time.time() - start
 start = time.time()
-df_test = pd.read_csv("test_1000.csv")
+df_test = pd.read_csv("test.csv")
 print "Done reading in test" , time.time() - start
 
 # delete smiles from all data
@@ -84,7 +85,7 @@ def linreg(X_train, Y_train, X_validate):
 
 def simplerandomforest(X_train, Y_train, X_validate=None):
     """Simple random forest regression"""
-    RF = RandomForestRegressor(verbose=2, n_estimators=50)
+    RF = RandomForestRegressor(verbose=2, n_estimators=50, max_features="auto", min_samples_leaf=2)
     RF.fit(X_train, Y_train)
     write_to_file("RF_feature_importances.csv", RF.feature_importances_)
     if use_full_train_set == 0:
@@ -120,6 +121,7 @@ if use_full_train_set == 0:
     start = time.time()
     Y_pred = simplerandomforest(X_train, Y_train, X_validate)
     print "Done fitting and predicting", time.time() - start
+    print "File saved at:", datetime.datetime.now()
 
     print "Y_pred shape:", Y_pred.shape
     rmse = math.sqrt(mean_squared_error(Y_validate, Y_pred))
@@ -129,6 +131,7 @@ else:
     start = time.time()
     Y_pred = simplerandomforest(X_train, Y_train)
     print "Done fitting and predicting", time.time() - start
+    print "File saved at:", datetime.datetime.now()
 
     print "Y_pred shape:", Y_pred.shape
     # rmse = math.sqrt(mean_squared_error(Y_train, Y_pred))
