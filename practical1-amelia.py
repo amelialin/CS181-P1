@@ -15,6 +15,8 @@ def write_to_file(filename, predictions):
         for i,p in enumerate(predictions):
             f.write(str(i+1) + "," + str(p) + "\n")
 
+use_full_train_set = 1
+
 # Turns off scientific notation when printing matrices in numpy
 np.set_printoptions(suppress=True)
 
@@ -50,17 +52,26 @@ df_test = df_test.drop(['Id'], axis=1)
 X_train_all = df_train_all.values
 X_test = df_test.values
 
-# split training set into training and validation sets
-X_train, X_validate, Y_train, Y_validate = train_test_split(
-         X_train_all, Y_train_all, test_size=0.5, random_state=0)
+if use_full_train_set == 0:
+    # split training set into training and validation sets
+    X_train, X_validate, Y_train, Y_validate = train_test_split(
+             X_train_all, Y_train_all, test_size=0.5, random_state=0)
 
-print "X_train shape:", X_train.shape
-print "X_validate shape:", X_validate.shape
-print "Y_train shape:", Y_train.shape
-print "Y_validate shape:", Y_validate.shape
-print "X_test shape:", X_test.shape
+    print "X_train shape:", X_train.shape
+    print "X_validate shape:", X_validate.shape
+    print "Y_train shape:", Y_train.shape
+    print "Y_validate shape:", Y_validate.shape
+    print "X_test shape:", X_test.shape
 
-def linreg(X_train, Y_train, X_validate, Y_validate):
+else:
+    X_train = X_train_all
+    Y_train = Y_train_all
+
+    print "X_train shape:", X_train.shape
+    print "Y_train shape:", Y_train.shape
+    print "X_test shape:", X_test.shape
+
+def linreg(X_train, Y_train, X_validate):
     """Linear regression"""
     # create linear regression object
     LR = LinearRegression()
@@ -71,16 +82,19 @@ def linreg(X_train, Y_train, X_validate, Y_validate):
     write_to_file("LR_Y_pred.csv", Y_pred)
     return Y_pred
 
-def simplerandomforest(X_train, Y_train, X_validate, Y_validate):
+def simplerandomforest(X_train, Y_train, X_validate=None):
     """Simple random forest regression"""
-    RF = RandomForestRegressor(verbose=2, n_estimators=10)
+    RF = RandomForestRegressor(verbose=2, n_estimators=50)
     RF.fit(X_train, Y_train)
-    # print "RF.feature_importances_", RF.feature_importances_
-    Y_pred = RF.predict(X_validate)
+    write_to_file("RF_feature_importances.csv", RF.feature_importances_)
+    if use_full_train_set == 0:
+        Y_pred = RF.predict(X_validate)
+    else:
+        Y_pred = RF.predict(X_test)
     write_to_file("RF_Y_pred.csv", Y_pred)
     return Y_pred
 
-def svr_rbf(X_train, Y_train, X_validate, Y_validate):
+def svr_rbf(X_train, Y_train, X_validate):
     """Support vector regression, using RBF kernel"""
     SVR_RBF = SVR(kernel='rbf')
     SVR_RBF.fit(X_train, Y_train)
@@ -88,24 +102,34 @@ def svr_rbf(X_train, Y_train, X_validate, Y_validate):
     write_to_file("SVR_RBF_Y_pred.csv", Y_pred)
     return Y_pred
 
-def svr_linear(X_train, Y_train, X_validate, Y_validate):
+def svr_linear(X_train, Y_train, X_validate):
     """Support vector regression, using linear kernel"""
     SVR_LIN = SVR(kernel='linear')
     Y_pred = SVR_LIN.fit(X_train, Y_train).predict(X_validate)
     write_to_file("SVR_LIN_Y_pred.csv", Y_pred)
     return Y_pred
 
-def svr_poly(X_train, Y_train, X_validate, Y_validate):
+def svr_poly(X_train, Y_train, X_validate):
     """Support vector regression, using polynomial kernel"""
     SVR_POLY = SVR(kernel='poly')
     Y_pred = SVR_POLY.fit(X_train, Y_train).predict(X_validate)
     write_to_file("SVR_POLY_Y_pred.csv", Y_pred)
     return Y_pred
 
-start = time.time()
-Y_pred = simplerandomforest(X_train, Y_train, X_validate, Y_validate)
-print "Done fitting and predicting", time.time() - start
+if use_full_train_set == 0:
+    start = time.time()
+    Y_pred = simplerandomforest(X_train, Y_train, X_validate)
+    print "Done fitting and predicting", time.time() - start
 
-print "Y_pred shape:", Y_pred.shape
-rmse = math.sqrt(mean_squared_error(Y_validate, Y_pred))
-print("RMSE: %.6f" % rmse)
+    print "Y_pred shape:", Y_pred.shape
+    rmse = math.sqrt(mean_squared_error(Y_validate, Y_pred))
+    print("RMSE: %.6f" % rmse)
+
+else:
+    start = time.time()
+    Y_pred = simplerandomforest(X_train, Y_train)
+    print "Done fitting and predicting", time.time() - start
+
+    print "Y_pred shape:", Y_pred.shape
+    rmse = math.sqrt(mean_squared_error(Y_train, Y_pred))
+    print("RMSE: %.6f" % rmse)
