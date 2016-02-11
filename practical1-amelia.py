@@ -15,7 +15,7 @@ def write_to_file(filename, predictions):
         for i,p in enumerate(predictions):
             f.write(str(i+1) + "," + str(p) + "\n")
 
-use_full_train_set = 1
+use_full_train_set = 0
 
 # Turns off scientific notation when printing matrices in numpy
 np.set_printoptions(suppress=True)
@@ -23,10 +23,10 @@ np.set_printoptions(suppress=True)
 # use pandas built-in functions to read in train and test
 print "Loading data"
 start = time.time()
-df_train_all = pd.read_csv("train.csv")
+df_train_all = pd.read_csv("train_1000.csv")
 print "Done reading in train", time.time() - start
 start = time.time()
-df_test = pd.read_csv("test.csv")
+df_test = pd.read_csv("test_1000.csv")
 print "Done reading in test" , time.time() - start
 
 # delete smiles from all data
@@ -131,5 +131,5 @@ else:
     print "Done fitting and predicting", time.time() - start
 
     print "Y_pred shape:", Y_pred.shape
-    rmse = math.sqrt(mean_squared_error(Y_train, Y_pred))
-    print("RMSE: %.6f" % rmse)
+    # rmse = math.sqrt(mean_squared_error(Y_train, Y_pred))
+    # print("RMSE: %.6f" % rmse)
