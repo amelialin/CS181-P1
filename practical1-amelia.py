@@ -1,17 +1,13 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+import math
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import mean_squared_error
-
-def shuffle(df):
-    """
-    Randomly shuffles rows of a DataFrame and returns the shuffled DataFrame
-    """     
-    return df.reindex(np.random.permutation(df.index))
 
 def write_to_file(filename, predictions):
     with open(filename, "w") as f:
@@ -23,13 +19,13 @@ def write_to_file(filename, predictions):
 np.set_printoptions(suppress=True)
 
 # use pandas built-in functions to read in train and test
-df_train_all = pd.read_csv("train_1000.csv")
-print "Done reading in train"
-df_test = pd.read_csv("test_1000.csv")
-print "Done reading in test"
-
-# take random sample from training set
-# df_train = shuffle(df_train)[:5000]
+print "Loading data"
+start = time.time()
+df_train_all = pd.read_csv("train.csv")
+print "Done reading in train", time.time() - start
+start = time.time()
+df_test = pd.read_csv("test.csv")
+print "Done reading in test" , time.time() - start
 
 # delete smiles from all data
 del df_train_all['smiles']
@@ -72,48 +68,44 @@ def linreg(X_train, Y_train, X_validate, Y_validate):
     LR.fit(X_train, Y_train)
     # print "Coefficients: \n", LR.coef_
     Y_pred = LR.predict(X_validate)
-    print "Y_pred shape:", Y_pred.shape
-    mse = mean_squared_error(Y_validate, Y_pred)
-    print("MSE: %.4f" % mse)
     write_to_file("LR_Y_pred.csv", Y_pred)
+    return Y_pred
 
 def simplerandomforest(X_train, Y_train, X_validate, Y_validate):
     """Simple random forest regression"""
-    RF = RandomForestRegressor()
+    RF = RandomForestRegressor(verbose=2, n_estimators=10)
     RF.fit(X_train, Y_train)
     # print "RF.feature_importances_", RF.feature_importances_
     Y_pred = RF.predict(X_validate)
-    print "Y_pred shape:", Y_pred.shape
-    mse = mean_squared_error(Y_validate, Y_pred)
-    print("MSE: %.4f" % mse)
     write_to_file("RF_Y_pred.csv", Y_pred)
+    return Y_pred
 
 def svr_rbf(X_train, Y_train, X_validate, Y_validate):
     """Support vector regression, using RBF kernel"""
     SVR_RBF = SVR(kernel='rbf')
     SVR_RBF.fit(X_train, Y_train)
     Y_pred = SVR_RBF.predict(X_validate)
-    print "Y_pred shape:", Y_pred.shape
-    mse = mean_squared_error(Y_validate, Y_pred)
-    print("MSE: %.4f" % mse)
     write_to_file("SVR_RBF_Y_pred.csv", Y_pred)
+    return Y_pred
 
 def svr_linear(X_train, Y_train, X_validate, Y_validate):
     """Support vector regression, using linear kernel"""
     SVR_LIN = SVR(kernel='linear')
     Y_pred = SVR_LIN.fit(X_train, Y_train).predict(X_validate)
-    print "Y_pred shape:", Y_pred.shape
-    mse = mean_squared_error(Y_validate, Y_pred)
-    print("MSE: %.4f" % mse)
     write_to_file("SVR_LIN_Y_pred.csv", Y_pred)
+    return Y_pred
 
 def svr_poly(X_train, Y_train, X_validate, Y_validate):
     """Support vector regression, using polynomial kernel"""
     SVR_POLY = SVR(kernel='poly')
     Y_pred = SVR_POLY.fit(X_train, Y_train).predict(X_validate)
-    print "Y_pred shape:", Y_pred.shape
-    mse = mean_squared_error(Y_validate, Y_pred)
-    print("MSE: %.4f" % mse)
     write_to_file("SVR_POLY_Y_pred.csv", Y_pred)
+    return Y_pred
 
-svr_poly(X_train, Y_train, X_validate, Y_validate)
+start = time.time()
+Y_pred = simplerandomforest(X_train, Y_train, X_validate, Y_validate)
+print "Done fitting and predicting", time.time() - start
+
+print "Y_pred shape:", Y_pred.shape
+rmse = math.sqrt(mean_squared_error(Y_validate, Y_pred))
+print("RMSE: %.6f" % rmse)
